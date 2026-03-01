@@ -1,20 +1,48 @@
-#include "ir/graph.hpp"
 #include <iostream>
+#include <fstream>
+#include <cstdlib>
 
-int main()
-{
-  ir::Graph g;
+#include "ir/graph.hpp"
+#include "third_party/OnnxImporter.hpp"
+#include "viz/GraphvizDump.hpp"
 
-  auto a = g.AddValue("A", ir::ValueKind::Input);
-  auto b = g.AddValue("B", ir::ValueKind::Input);
-  auto c = g.AddValue("C", ir::ValueKind::Intermediate);
 
-  g.MarkAsGraphInput(a);
-  g.MarkAsGraphInput(b);
+int main(int argc, const char** argv) {
+    
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <input.onnx> <output.dot>\n";
+        return EXIT_FAILURE;
+    }
 
-  g.AddNode("Add", {a, b}, {c});
-  g.MarkAsGraphOutput(c);
+    std::string onnx_file = argv[1];
+    std::string dot_file  = argv[2];
 
-  std::cout << "nodes=" << g.Nodes().size() << " values=" << g.Values().size() << "\n";
-  return 0;
+    ir::Graph graph;
+    ir::ONNXImporter importer;
+
+    
+    if (!importer.fileImport(onnx_file, graph)) {
+        std::cerr << "Failed to import ONNX model\n";
+        return EXIT_FAILURE;
+    }
+
+    {
+        std::string error;
+        if (!graph.CheckInvariants(&error)) {
+            std::cerr << "Graph invariant check failed: " << error << "\n";
+        }
+    }
+
+    std::ofstream ofs(dot_file);
+    if (!ofs.is_open()) {
+        std::cerr << "Failed to open output file: " << dot_file << "\n";
+        return EXIT_FAILURE;
+    }
+
+    graphviz::Dump dumper;
+    dumper(graph, ofs);
+    ofs.close();
+
+    std::cout << "Successfully converted " << onnx_file << " to " << dot_file << "\n";
+    return EXIT_SUCCESS;
 }
