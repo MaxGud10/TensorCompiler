@@ -30,5 +30,10 @@ cmake --build build
 
 ### Testing
 
+- **The set of models in onnx format was provided and bash script was provided to run the program on the models**
+- **After building the project and providing execute permission to the bash script, just run the script to get two directories created with .dot and .png format results**
 
+```
+./run_test_models
+```
 ----
