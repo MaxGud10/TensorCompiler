@@ -20,6 +20,7 @@ void Dump::operator()(const ir::Graph& graph, std::ostream& os) const {
 
     for (ir::ValueId vid : graph.Inputs()) {
         const ir::Value& val = graph.GetValue(vid);
+        if (val.kind == ir::ValueKind::Initializer) continue;
         std::string nodeId = "input_" + std::to_string(vid);
         valueNodeIds[vid] = nodeId;
         os << "    " << nodeId << " [shape=ellipse, style=\"filled, rounded\", fillcolor=\"#1B9E97\", fontcolor=white, label=" << quotation(val.name) << "];\n";
